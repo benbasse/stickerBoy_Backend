@@ -14,14 +14,15 @@ class Order extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'status',
+        'status', //(pending, confirmed, cancelled)
         'total_price',
         'customer_id',
         'reference',
         'payment_status',
         'payment_provider',
         'payment_reference',
-        'payment_link'
+        'payment_link',
+        'paid_at'
     ];
 
     public function stickers()

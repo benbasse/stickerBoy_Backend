@@ -153,31 +153,22 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order already paid'], 400);
         }
 
-        $payload = [
-            'amount' => $order->total_price,
-            'currency' => 'XOF',
-            'reference' => $order->reference,
-            'customer' => [
-                'firstname' => $order->customer->firstname,
-                'lastname'  => $order->customer->lastname,
-                'phone'     => $order->customer->phone,
-            ],
-            'callback_url' => route('bictorys.webhook'),
-            'success_url'  => 'https://stickerboy.com/payment-success',
-            'cancel_url'   => 'https://stickerboy.com/payment-cancel',
-        ];
-
-        $payment = $bictorys->createPayment($payload);
+        $payment = $bictorys->createCharge([
+            "amount" => $order->total_price,
+            "currency" => "XOF",
+            "paymentReference" => $order->reference,
+            "successRedirectUrl" => env('FRONTEND_SUCCESS_URL'),
+            "errorRedirectUrl" => env('FRONTEND_ERROR_URL'),
+        ]);
 
         $order->update([
             'payment_provider' => 'bictorys',
-            'payment_reference' => $payment['reference'],
-            'payment_link'     => $payment['payment_url'],
-            'payment_status'   => 'pending',
+            'payment_status' => 'pending',
+            'payment_link' => $payment['paymentUrl'] ?? $payment['checkoutUrl'] ?? null,
         ]);
 
         return response()->json([
-            'payment_url' => $payment['payment_url']
+            'payment_url' => $order->payment_link
         ]);
     }
 }

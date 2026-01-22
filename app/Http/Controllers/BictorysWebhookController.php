@@ -9,8 +9,8 @@ class BictorysWebhookController extends Controller
 {
     public function handle(Request $request)
     {
-        $reference = $request->reference;
-        $status = $request->status; // success | failed
+        $reference = $request->paymentReference;
+        $status = $request->status; // SUCCESS | FAILED
 
         $order = Order::where('reference', $reference)->first();
 
@@ -18,15 +18,15 @@ class BictorysWebhookController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        if ($status === 'success') {
+        if ($status === 'SUCCESS') {
             $order->update([
                 'payment_status' => 'paid',
                 'status' => 'confirmed',
-                'paid_at' => now()
+                'paid_at' => now(),
             ]);
         } else {
             $order->update([
-                'payment_status' => 'failed'
+                'payment_status' => 'failed',
             ]);
         }
 
