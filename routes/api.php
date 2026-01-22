@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BictorysWebhookController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryToteBagController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StickerController;
 use App\Http\Controllers\SubCategoryController;
@@ -62,9 +63,17 @@ Route::middleware(['auth:api', 'access:admin'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
+
+//Collections routes
+    Route::Post('collections', [CollectionController::class, 'store']);
+    Route::put('collections/{collection}', [CollectionController::class, 'update']);
+    Route::delete('collections/{collection}', [CollectionController::class, 'destroy']);
 });
 
 Route::post('/orders', [OrderController::class, 'store']);
 Route::post('/orders/{order}/pay', [OrderController::class, 'pay']);
 Route::post('/webhooks/bictorys', [BictorysWebhookController::class, 'handle'])
     ->name('bictorys.webhook');
+
+Route::get('collections', [CollectionController::class, 'index']);
+Route::get('collections/{collection}', [CollectionController::class, 'show']);

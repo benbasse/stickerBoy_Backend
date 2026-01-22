@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Collection;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -31,15 +32,22 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         DB::beginTransaction();
+
         $request->validate([
             'customer.firstname' => 'required|string',
-            'customer.lastname' => 'required|string',
-            'customer.phone' => 'required|string',
+            'customer.lastname'  => 'required|string',
+            'customer.phone'     => 'required|string',
 
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|string',
-            'items.*.product_type' => 'required|in:sticker,tote_bag',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.type' => 'required|in:product,collection',
+
+            // product rules
+            'items.*.product_id'   => 'required_if:items.*.type,product',
+            'items.*.product_type' => 'required_if:items.*.type,product|in:sticker,tote_bag',
+            'items.*.quantity'     => 'required_if:items.*.type,product|integer|min:1',
+
+            // collection rules
+            'items.*.collection_id' => 'required_if:items.*.type,collection'
         ]);
 
         try {
@@ -52,33 +60,67 @@ class OrderController extends Controller
 
             // 2. Create order
             $order = Order::create([
-                'customer_id' => $customer->id,
-                'reference'   => Str::uuid(),
-                'status'      => 'pending',
+                'customer_id'    => $customer->id,
+                'reference'      => Str::uuid(),
+                'status'         => 'pending',
                 'payment_status' => 'unpaid',
-                'total_price' => 0
+                'total_price'    => 0
             ]);
 
             $total = 0;
 
-            // 3. Create order items
+            // 3. Handle items
             foreach ($request->items as $item) {
 
-                $product = $item['product_type'] === 'sticker'
-                    ? Sticker::findOrFail($item['product_id'])
-                    : ToteBag::findOrFail($item['product_id']);
+                /**
+                 * 🟢 SIMPLE PRODUCT
+                 */
+                if ($item['type'] === 'product') {
 
-                $subtotal = $product->price * $item['quantity'];
-                $total += $subtotal;
+                    $product = $item['product_type'] === 'sticker'
+                        ? Sticker::findOrFail($item['product_id'])
+                        : ToteBag::findOrFail($item['product_id']);
 
-                OrderItem::create([
-                    'order_id'    => $order->id,
-                    'product_id'  => $product->id,
-                    'product_type' => $item['product_type'],
-                    'price'       => $product->price,
-                    'quantity'    => $item['quantity'],
-                    'subtotal'    => $subtotal
-                ]);
+                    $subtotal = $product->price * $item['quantity'];
+                    $total += $subtotal;
+
+                    OrderItem::create([
+                        'order_id'    => $order->id,
+                        'product_id'  => $product->id,
+                        'product_type' => $item['product_type'],
+                        'unit_price'  => $product->price,
+                        'quantity'    => $item['quantity'],
+                        'subtotal'    => $subtotal,
+                        'is_bundle_item' => false
+                    ]);
+                }
+
+                /**
+                 * 🟣 COLLECTION (BUNDLE)
+                 */
+                if ($item['type'] === 'collection') {
+
+                    $collection = Collection::with('products')->findOrFail($item['collection_id']);
+
+                    // prix du bundle
+                    if ($collection->bundle_price) {
+                        $total += $collection->bundle_price;
+                    }
+
+                    foreach ($collection->products as $product) {
+
+                        OrderItem::create([
+                            'order_id' => $order->id,
+                            'product_id' => $product->id,
+                            'product_type' => $product->type, // sticker | tote_bag
+                            'unit_price' => $product->price,
+                            'quantity' => $product->pivot->quantity,
+                            'subtotal' => $product->price * $product->pivot->quantity,
+                            'from_collection_id' => $collection->id,
+                            'is_bundle_item' => true
+                        ]);
+                    }
+                }
             }
 
             // 4. Update total
@@ -101,6 +143,7 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
 
 
     /**
@@ -131,14 +174,14 @@ class OrderController extends Controller
         },
         "items": [
             {
-            "product_id": "uuid-sticker-1",
+            "type": "product",
             "product_type": "sticker",
+            "product_id": "1",
             "quantity": 2
             },
             {
-            "product_id": "uuid-tote-1",
-            "product_type": "tote_bag",
-            "quantity": 1
+            "type": "collection",
+            "collection_id": 3
             }
         ]
         }

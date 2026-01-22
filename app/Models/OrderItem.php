@@ -17,8 +17,25 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_type',
-        'price',
+        'unit_price',
         'quantity',
+        'from_collection_id',
+        'is_bundle_item',
         'subtotal'
     ];
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function collection()
+    {
+        return $this->belongsTo(Collection::class, 'from_collection_id');
+    }
 }

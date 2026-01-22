@@ -16,10 +16,11 @@ return new class extends Migration
             $table->foreignUuid('order_id')->constrained('orders')->onDelete('cascade');
             $table->string('product_id');
             $table->enum('product_type', ['sticker', 'tote_bag']);
-            $table->bigInteger('price');
+            $table->bigInteger('unit_price');
             $table->integer('quantity');
+            $table->foreignUuid('from_collection_id')->nullable()->constrained('collections')->onDelete('set null');
+            $table->boolean('is_bundle_item')->default(false);
             $table->bigInteger('subtotal');
-            $table->timestamp('paid_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
