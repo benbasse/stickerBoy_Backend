@@ -38,16 +38,24 @@ class CategoryToteBagController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(CategoryToteBag $categoryToteBag)
+    public function show($id)
     {
-        return $this->succesResponse($categoryToteBag->load('toteBags'), 'Category Tote Bag retrieved successfully');
+        $categoryToteBag = CategoryToteBag::with('toteBags')->find($id);
+        if (!$categoryToteBag) {
+            return $this->errorResponse('Category Tote Bag not found', 404);
+        }
+        return $this->succesResponse($categoryToteBag, 'Category Tote Bag retrieved successfully', 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, CategoryToteBag $categoryToteBag)
+    public function update(Request $request, $id)
     {
+        $categoryToteBag = CategoryToteBag::find($id);
+        if (!$categoryToteBag) {
+            return $this->errorResponse('Category Tote Bag not found', 404);
+        }
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -59,8 +67,12 @@ class CategoryToteBagController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(CategoryToteBag $categoryToteBag)
+    public function destroy($id)
     {
+        $categoryToteBag = CategoryToteBag::find($id);
+        if (!$categoryToteBag) {
+            return $this->errorResponse('Category Tote Bag not found', 404);
+        }
         $categoryToteBag->delete();
         return $this->succesResponse(null, 'Category Tote Bag deleted successfully', 204);
     }

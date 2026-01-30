@@ -32,4 +32,16 @@ class Sticker extends Model
     {
         return $this->belongsTo(SubCategory::class, 'sub_category_id');
     }
+
+    /**
+     * Relation polymorphique
+     */
+    public function product()
+    {
+        return $this->morphTo(
+            name: 'product',
+            type: 'product_type',
+            id: 'product_id'
+        );
+    }
 }

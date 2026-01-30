@@ -7,6 +7,16 @@ use Illuminate\Http\Request;
 
 class BictorysWebhookController extends Controller
 {
+    /**
+     * Summary of handle
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * Example payload:
+    {
+        "paymentReference": "order-12345",
+        "status": "SUCCESS" // or "FAILED"
+    }
+     */
     public function handle(Request $request)
     {
         $reference = $request->paymentReference;
@@ -21,12 +31,13 @@ class BictorysWebhookController extends Controller
         if ($status === 'SUCCESS') {
             $order->update([
                 'payment_status' => 'paid',
-                'status' => 'confirmed',
-                'paid_at' => now(),
+                'status' => 'completed',
+                // 'paid_at' => now(),
             ]);
         } else {
             $order->update([
-                'payment_status' => 'failed',
+                'payment_status' => 'refunded',
+                'status' => 'cancelled',
             ]);
         }
 

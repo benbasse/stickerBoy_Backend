@@ -13,11 +13,14 @@ class CollectionProduct extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $table = 'collection_product';
+    protected $table = 'collection_products';
 
     protected $fillable = [
         'collection_id',
         'product_id',
+        'quantity',
+        'product_type', // 'sticker', 'totebags', 'other'
+        'image'
     ];
 
     public function collection()
@@ -25,8 +28,25 @@ class CollectionProduct extends Model
         return $this->belongsTo(Collection::class, 'collection_id');
     }
 
+    /**
+     * Relation polymorphique
+     */
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->morphTo(
+            name: 'product',
+            type: 'product_type',
+            id: 'product_id'
+        );
+    }
+
+    public function sticker()
+    {
+        return $this->belongsTo(Sticker::class, 'product_id');
+    }
+
+    public function toteBag()
+    {
+        return $this->belongsTo(ToteBag::class, 'product_id');
     }
 }

@@ -15,7 +15,7 @@ class SubCategoryController extends Controller
     public function index()
     {
         $subcategories = SubCategory::with('category', 'stickers')->get();
-        return $this->succesResponse($subcategories, 'SubCategories retrieved successfully');
+        return $this->succesResponse($subcategories, 'SubCategories retrieved successfully', 200);
     }
 
     /**
@@ -39,9 +39,9 @@ class SubCategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(SubCategory $subCategory)
+    public function show($id)
     {
-        $subCategory = SubCategory::with('category', 'stickers')->find($subCategory->id);
+        $subCategory = SubCategory::with('category', 'stickers')->find($id);
         if (!$subCategory) {
             return $this->errorResponse('SubCategory not found', 404);
         }
@@ -51,8 +51,12 @@ class SubCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, SubCategory $subCategory)
+    public function update(Request $request, $id)
     {
+        $subCategory = SubCategory::find($id);
+        if (!$subCategory) {
+            return $this->errorResponse('SubCategory not found', 404);
+        }
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'category_id' => 'sometimes|required|uuid|exists:categories,id',
@@ -64,8 +68,12 @@ class SubCategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SubCategory $subCategory)
+    public function destroy($id)
     {
+        $subCategory = SubCategory::find($id);
+        if (!$subCategory) {
+            return $this->errorResponse('SubCategory not found', 404);
+        }
         $subCategory->delete();
         return $this->succesResponse(null, 'SubCategory deleted successfully');
     }

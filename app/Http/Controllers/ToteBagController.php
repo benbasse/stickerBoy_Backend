@@ -50,15 +50,16 @@ class ToteBagController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ToteBag $toteBag)
+    public function show($id)
     {
+        $toteBag = ToteBag::findOrFail($id);
         return $this->succesResponse($toteBag->load('categoryToteBag'), 'Tote Bag retrieved successfully');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ToteBag $toteBag)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -69,13 +70,18 @@ class ToteBagController extends Controller
             'category_tote_bag_id' => 'sometimes|required|exists:category_tote_bags,id',
         ]);
 
-        $data = $request->only(['name', 'description', 'price', 'stock', 'category_tote_bag_id']);
-
+        // $data = $request->only(['name', 'description', 'price', 'stock', 'category_tote_bag_id']);
+        $toteBag = ToteBag::findOrFail($id);
+        $toteBag->name = $request->input('name', $toteBag->name);
+        $toteBag->description = $request->input('description', $toteBag->description);
+        $toteBag->price = $request->input('price', $toteBag->price);
+        $toteBag->stock = $request->input('stock', $toteBag->stock);
+        $toteBag->category_tote_bag_id = $request->input('category_tote_bag_id', $toteBag->category_tote_bag_id);
         if ($request->hasFile('image')) {
-            $data['image'] = $this->storeImage($request->file('image'));
+            $toteBag->image = $this->storeImage($request->file('image'));
         }
 
-        $toteBag->update($data);
+        $toteBag->update();
 
         return $this->succesResponse($toteBag, 'Tote Bag updated successfully');
     }
@@ -83,8 +89,9 @@ class ToteBagController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ToteBag $toteBag)
+    public function destroy($id)
     {
+        $toteBag = ToteBag::findOrFail($id);
         $toteBag->delete();
         return $this->succesResponse(null, 'Tote Bag deleted successfully', 204);
     }

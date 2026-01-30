@@ -17,17 +17,43 @@ use Illuminate\Support\Str;
 class OrderController extends Controller
 {
     use apiResponseTrait;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $orders = Order::all();
-        return $this->succesResponse(200, 'done', $orders);
+        $orders = Order::with('orderItems', 'customer')->get();
+        return $this->succesResponse($orders, 'done', 200);
     }
 
     /**
      * Store a newly created resource in storage.
+     */
+    /**
+     * Summary of store
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     *jsonattended
+    {
+        "customer": {
+            "firstname": "Moussa",
+            "lastname": "Basse",
+            "phone": "770000000"
+        },
+        "items": [
+            {
+                "type": "product",
+                "product_type": "sticker",
+                "product_id": "1",
+                "quantity": 2
+            },
+            {
+                "type": "collection",
+                "collection_id": 3
+            }
+        ]
+    }
      */
     public function store(Request $request)
     {
@@ -71,19 +97,13 @@ class OrderController extends Controller
 
             // 3. Handle items
             foreach ($request->items as $item) {
-
-                /**
-                 * 🟢 SIMPLE PRODUCT
-                 */
+                // 🟢 SIMPLE PRODUCT
                 if ($item['type'] === 'product') {
-
                     $product = $item['product_type'] === 'sticker'
                         ? Sticker::findOrFail($item['product_id'])
                         : ToteBag::findOrFail($item['product_id']);
-
                     $subtotal = $product->price * $item['quantity'];
                     $total += $subtotal;
-
                     OrderItem::create([
                         'order_id'    => $order->id,
                         'product_id'  => $product->id,
@@ -94,28 +114,30 @@ class OrderController extends Controller
                         'is_bundle_item' => false
                     ]);
                 }
-
-                /**
-                 * 🟣 COLLECTION (BUNDLE)
-                 */
+                // 🟣 COLLECTION (BUNDLE)
                 if ($item['type'] === 'collection') {
-
                     $collection = Collection::with('products')->findOrFail($item['collection_id']);
-
                     // prix du bundle
                     if ($collection->bundle_price) {
                         $total += $collection->bundle_price;
                     }
-
                     foreach ($collection->products as $product) {
-
+                        // Récupérer le vrai produit
+                        if ($product->product_type === 'sticker') {
+                            $realProduct = $product->sticker;
+                        } elseif ($product->product_type === 'tote_bag') {
+                            $realProduct = $product->toteBag;
+                        } else {
+                            continue; // ou gestion d'erreur
+                        }
+                        $unitPrice = $realProduct ? $realProduct->price : 0;
                         OrderItem::create([
                             'order_id' => $order->id,
-                            'product_id' => $product->id,
-                            'product_type' => $product->type, // sticker | tote_bag
-                            'unit_price' => $product->price,
-                            'quantity' => $product->pivot->quantity,
-                            'subtotal' => $product->price * $product->pivot->quantity,
+                            'product_id' => $product->product_id,
+                            'product_type' => $product->product_type, // sticker | tote_bag
+                            'unit_price' => $unitPrice,
+                            'quantity' => $product->quantity,
+                            'subtotal' => $unitPrice * $product->quantity,
                             'from_collection_id' => $collection->id,
                             'is_bundle_item' => true
                         ]);
@@ -131,9 +153,9 @@ class OrderController extends Controller
             DB::commit();
 
             return $this->succesResponse(
-                201,
+                $order->load('orderItems'),
                 'Order created successfully',
-                $order->load('items')
+                201
             );
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -149,18 +171,21 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Order $order)
+    public function show($id)
     {
-        return $this->succesResponse(200, 'done', $order);
+        $order = Order::with('orderItems', 'customer')->findOrFail($id);
+        return $this->succesResponse($order, 'done', 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Order $order)
+    public function destroy($id)
     {
+        $order = Order::findOrFail($id);
+
         $order->delete();
-        return $this->succesResponse(200, 'Order deleted successfully', null);
+        return $this->succesResponse(null, 'Order deleted successfully', 200);
     }
 
     /**
@@ -190,8 +215,10 @@ class OrderController extends Controller
     /**
      * Pay for the specified order by id order.
      */
-    public function pay(Order $order, BictorysPaymentService $bictorys)
+    public function pay($id, BictorysPaymentService $bictorys)
     {
+        $order = Order::findOrFail($id);
+
         if ($order->payment_status === 'paid') {
             return response()->json(['message' => 'Order already paid'], 400);
         }
@@ -203,15 +230,31 @@ class OrderController extends Controller
             "successRedirectUrl" => env('FRONTEND_SUCCESS_URL'),
             "errorRedirectUrl" => env('FRONTEND_ERROR_URL'),
         ]);
-
         $order->update([
             'payment_provider' => 'bictorys',
-            'payment_status' => 'pending',
-            'payment_link' => $payment['paymentUrl'] ?? $payment['checkoutUrl'] ?? null,
+            'payment_status' => 'unpaid',
+            'payment_link' => $payment['link'] ?? null,
         ]);
 
         return response()->json([
             'payment_url' => $order->payment_link
         ]);
+    }
+
+    /**
+     *Updatestatus order
+     */
+    public function updateStatus($id, Request $request)
+    {
+        $order = Order::findOrFail($id);
+        $request->validate([
+            'status' => 'required|in:pending,processing,paid,refunded,failed,completed,cancelled'
+        ]);
+
+        $order->update([
+            'status' => $request->status
+        ]);
+
+        return $this->succesResponse($order, 'Order status updated successfully', 200);
     }
 }

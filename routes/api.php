@@ -30,16 +30,14 @@ Route::middleware(['auth:api'])->group(function () {
 
 Route::middleware(['auth:api', 'access:admin'])->group(function () {
     //category routes
-    Route::get('categories', [CategoryController::class, 'index']);
     Route::post('categories', [CategoryController::class, 'store']);
     Route::put('categories/{id}', [CategoryController::class, 'update']);
     Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
 
     //subcategory routes
-    Route::get('subcategories', [SubCategoryController::class, 'subcategories']);
-    Route::post('subcategories', [SubCategoryController::class, 'storeSubcategory']);
-    Route::put('subcategories/{id}', [SubCategoryController::class, 'updateSubcategory']);
-    Route::delete('subcategories/{id}', [SubCategoryController::class, 'destroySubcategory']);
+    Route::post('subcategories', [SubCategoryController::class, 'store']);
+    Route::put('subcategories/{id}', [SubCategoryController::class, 'update']);
+    Route::delete('subcategories/{id}', [SubCategoryController::class, 'destroy']);
 
     //Stickers routes
     Route::get('stickers', [StickerController::class, 'index']);
@@ -51,21 +49,24 @@ Route::middleware(['auth:api', 'access:admin'])->group(function () {
     Route::get('categoryTB', [CategoryToteBagController::class, 'index']);
     Route::post('categoryTB', [CategoryToteBagController::class, 'store']);
     Route::get('categoryTB/{id}', [CategoryToteBagController::class, 'show']);
-    Route::get('categoryTB/{id}', [CategoryToteBagController::class, 'destroy']);
+    Route::put('categoryTB/{id}', [CategoryToteBagController::class, 'update']);
+    Route::delete('categoryTB/{id}', [CategoryToteBagController::class, 'destroy']);
 
     //ToteBags routes
     Route::get('toteBags', [ToteBagController::class, 'index']);
     Route::post('toteBags', [ToteBagController::class, 'store']);
     Route::get('toteBags/{id}', [ToteBagController::class, 'show']);
+    Route::put('toteBags/{id}', [ToteBagController::class, 'update']);
     Route::delete('toteBags/{id}', [ToteBagController::class, 'destroy']);
 
     //Orders routes
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
+    Route::patch('/orders/status/{order}', [OrderController::class, 'updateStatus']);
 
-//Collections routes
-    Route::Post('collections', [CollectionController::class, 'store']);
+    //Collections routes
+    // Route::Post('collections', [CollectionController::class, 'store']);
     Route::put('collections/{collection}', [CollectionController::class, 'update']);
     Route::delete('collections/{collection}', [CollectionController::class, 'destroy']);
 });
@@ -76,4 +77,16 @@ Route::post('/webhooks/bictorys', [BictorysWebhookController::class, 'handle'])
     ->name('bictorys.webhook');
 
 Route::get('collections', [CollectionController::class, 'index']);
+Route::post('collections', [CollectionController::class, 'store']);
 Route::get('collections/{collection}', [CollectionController::class, 'show']);
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('subcategories', [SubCategoryController::class, 'index']);
+Route::get('stickers', [StickerController::class, 'index']);
+Route::get('stickers/{sticker}', [StickerController::class, 'show']);
+Route::get('toteBags', [ToteBagController::class, 'index']);
+Route::get('toteBags/{toteBag}', [ToteBagController::class, 'show']);
+Route::get('categoryTB', [CategoryToteBagController::class, 'index']);
+
+// Vérification de la référence de paiement (callback ou redirection)
+Route::get('/orders/verify-payment', [OrderController::class, 'verifyPaymentReference']);
+Route::get('/orders/{order}', [OrderController::class, 'show']);

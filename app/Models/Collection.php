@@ -16,13 +16,19 @@ class Collection extends Model
     protected $fillable = [
         'name',
         'description',
+        'theme',
         'is_active',
-        'slug',
         'bundle_price',
+        'itemCount',
     ];
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'collection_product', 'collection_id', 'product_id');
+        return $this->hasMany(CollectionProduct::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->morphMany(OrderItem::class, 'itemable');
     }
 }

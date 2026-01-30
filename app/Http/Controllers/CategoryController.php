@@ -51,21 +51,29 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request,$id)
     {
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
         ]);
-        $category->update($request->only(['name', 'description']));
+        $category = Category::find($id);
+        $category->name = $request->name;
+        $category->description = $request->description;
+        $category->save();
+
         return $this->succesResponse($category, 'Category updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy($id)
     {
+        $category = Category::find($id);
+        if (!$category) {
+            return $this->errorResponse('Category not found', 404);
+        }
         $category->delete();
         return $this->succesResponse(null, 'Category deleted successfully');
     }

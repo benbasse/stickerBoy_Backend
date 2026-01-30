@@ -26,14 +26,13 @@ class StickerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'image' => 'required|in:jpeg,png,jpg,gif,svg|base64image',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
             'category_id' => 'required|uuid|exists:categories,id',
-            'sub_category_id' => 'required|uuid|exists:sub_categories,id',
+            'sub_category_id' => 'uuid|exists:sub_categories,id',
             'price' => 'required|numeric',
             'description' => 'nullable|string',
             'quantity' => 'required|integer',
         ]);
-
         $sticker = Sticker::create([
             'name' => $request->name,
             'image' => $this->storeImage($request->image),
@@ -50,9 +49,9 @@ class StickerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Sticker $sticker)
+    public function show($id)
     {
-        $sticker = Sticker::with(['category', 'subcategory'])->find($sticker->id);
+        $sticker = Sticker::with(['category', 'subcategory'])->find($id);
         if (!$sticker) {
             return $this->errorResponse('Sticker not found', 404);
         }
@@ -62,7 +61,7 @@ class StickerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Sticker $sticker)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -73,17 +72,23 @@ class StickerController extends Controller
             'description' => 'nullable|string',
             'quantity' => 'sometimes|required|integer',
         ]);
+        $sticker = Sticker::findOrFail($id);
+        $sticker->name = $request->input('name', $sticker->name);
+        $sticker->category_id = $request->input('category_id', $sticker->category_id);
+        $sticker->sub_category_id = $request->input('sub_category_id', $sticker->sub_category_id);
+        $sticker->price = $request->input('price', $sticker->price);
+        $sticker->description = $request->input('description', $sticker->description);
+        $sticker->quantity = $request->input('quantity', $sticker->quantity);
 
-        $data = $request->only(['name', 'category_id', 'sub_category_id', 'price', 'description', 'quantity']);
 
         if ($request->has('image')) {
             // Delete old image
             Storage::disk('public')->delete($sticker->image);
             // Store new image
-            $data['image'] = $this->storeImage($request->image);
+            $sticker->image = $this->storeImage($request->image);
         }
 
-        $sticker->update($data);
+        $sticker->update();
 
         return $this->succesResponse($sticker, 'Sticker updated successfully');
     }
@@ -91,8 +96,9 @@ class StickerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Sticker $sticker)
+    public function destroy($id)
     {
+        $sticker = Sticker::findOrFail($id);
         // Delete image
         Storage::disk('public')->delete($sticker->image);
         $sticker->delete();

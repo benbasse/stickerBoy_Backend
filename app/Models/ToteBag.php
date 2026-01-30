@@ -26,4 +26,16 @@ class ToteBag extends Model
     {
         return $this->belongsTo(CategoryToteBag::class, 'category_tote_bag_id');
     }
+
+    /**
+     * Relation polymorphique
+     */
+    public function product()
+    {
+        return $this->morphTo(
+            name: 'product',
+            type: 'product_type',
+            id: 'product_id'
+        );
+    }
 }
