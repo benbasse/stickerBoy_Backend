@@ -28,23 +28,30 @@ class ToteBagController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|integer',
-            'image' => 'required|image|max:2048',
+            'images' => 'required|array|min:1',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
             'stock' => 'required|integer',
             'category_tote_bag_id' => 'required|exists:category_tote_bags,id',
         ]);
 
-        $imagePath = $this->storeImage($request->file('image'));
 
-        $totebags = ToteBag::create([
+        // $imagePath = $this->storeImage($request->file('image'));
+        $imagePaths = $this->storeImages($request->file('images'));
+
+        $totebag = ToteBag::create([
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
-            'image' => $imagePath,
+            'images' => json_encode($imagePaths), // 👈 clé ici
             'stock' => $request->stock,
             'category_tote_bag_id' => $request->category_tote_bag_id,
         ]);
 
-        return $this->succesResponse($totebags, 'Tote Bag created successfully', 201);
+        return $this->succesResponse(
+            $totebag,
+            'Tote Bag created successfully',
+            201
+        );
     }
 
     /**
@@ -65,7 +72,9 @@ class ToteBagController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'sometimes|required|integer',
-            'image' => 'sometimes|image|max:2048',
+            // 'image' => 'sometimes|image|max:2048',
+            'images' => 'sometimes|array|min:1',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
             'stock' => 'sometimes|required|integer',
             'category_tote_bag_id' => 'sometimes|required|exists:category_tote_bags,id',
         ]);
@@ -77,8 +86,8 @@ class ToteBagController extends Controller
         $toteBag->price = $request->input('price', $toteBag->price);
         $toteBag->stock = $request->input('stock', $toteBag->stock);
         $toteBag->category_tote_bag_id = $request->input('category_tote_bag_id', $toteBag->category_tote_bag_id);
-        if ($request->hasFile('image')) {
-            $toteBag->image = $this->storeImage($request->file('image'));
+        if ($request->hasFile('images')) {
+            $toteBag->images = json_encode($this->storeImages($request->file('images')));
         }
 
         $toteBag->update();
@@ -99,5 +108,15 @@ class ToteBagController extends Controller
     public function storeImage($image)
     {
         return $image->store('tote_bags', 'public');
+    }
+
+    //storageformultipleimages
+    public function storeImages($images)
+    {
+        $imagePaths = [];
+        foreach ($images as $image) {
+            $imagePaths[] = $image->store('tote_bags', 'public');
+        }
+        return $imagePaths;
     }
 }

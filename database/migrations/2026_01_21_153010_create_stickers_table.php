@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('price');
             $table->text('description')->nullable();
             $table->integer('quantity');
+            $table->string('taille');
             $table->softDeletes();
             $table->timestamps();
         });

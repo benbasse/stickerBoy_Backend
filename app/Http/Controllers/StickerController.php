@@ -32,6 +32,7 @@ class StickerController extends Controller
             'price' => 'required|numeric',
             'description' => 'nullable|string',
             'quantity' => 'required|integer',
+            'taille' => 'required|string|max:255',
         ]);
         $sticker = Sticker::create([
             'name' => $request->name,
@@ -41,6 +42,7 @@ class StickerController extends Controller
             'price' => $request->price,
             'description' => $request->description,
             'quantity' => $request->quantity,
+            'taille' => $request->taille,
         ]);
 
         return $this->succesResponse($sticker, 'Sticker created successfully', 201);
@@ -51,7 +53,7 @@ class StickerController extends Controller
      */
     public function show($id)
     {
-        $sticker = Sticker::with(['category', 'subcategory'])->find($id);
+        $sticker = Sticker::with(['category', 'subcategory.stickers'])->find($id);
         if (!$sticker) {
             return $this->errorResponse('Sticker not found', 404);
         }
@@ -71,6 +73,7 @@ class StickerController extends Controller
             'price' => 'sometimes|required|numeric',
             'description' => 'nullable|string',
             'quantity' => 'sometimes|required|integer',
+            'taille' => 'sometimes|required|string|max:255',
         ]);
         $sticker = Sticker::findOrFail($id);
         $sticker->name = $request->input('name', $sticker->name);
@@ -79,6 +82,7 @@ class StickerController extends Controller
         $sticker->price = $request->input('price', $sticker->price);
         $sticker->description = $request->input('description', $sticker->description);
         $sticker->quantity = $request->input('quantity', $sticker->quantity);
+        $sticker->taille = $request->input('taille', $sticker->taille);
 
 
         if ($request->has('image')) {

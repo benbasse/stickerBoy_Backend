@@ -21,6 +21,7 @@ class Sticker extends Model
         'price',
         'description',
         'quantity',
+        'taille',//ajout de la colonne taille
     ];
 
     public function category()

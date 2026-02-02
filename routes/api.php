@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BictorysWebhookController;
 use App\Http\Controllers\CategoryController;
@@ -55,7 +56,6 @@ Route::middleware(['auth:api', 'access:admin'])->group(function () {
     //ToteBags routes
     Route::get('toteBags', [ToteBagController::class, 'index']);
     Route::post('toteBags', [ToteBagController::class, 'store']);
-    Route::get('toteBags/{id}', [ToteBagController::class, 'show']);
     Route::put('toteBags/{id}', [ToteBagController::class, 'update']);
     Route::delete('toteBags/{id}', [ToteBagController::class, 'destroy']);
 
@@ -85,8 +85,19 @@ Route::get('stickers', [StickerController::class, 'index']);
 Route::get('stickers/{sticker}', [StickerController::class, 'show']);
 Route::get('toteBags', [ToteBagController::class, 'index']);
 Route::get('toteBags/{toteBag}', [ToteBagController::class, 'show']);
+Route::get('toteBags/{id}', [ToteBagController::class, 'show']);
+
 Route::get('categoryTB', [CategoryToteBagController::class, 'index']);
 
 // Vérification de la référence de paiement (callback ou redirection)
 Route::get('/orders/verify-payment', [OrderController::class, 'verifyPaymentReference']);
 Route::get('/orders/{order}', [OrderController::class, 'show']);
+
+// Ads routes
+Route::get('ads', [AdsController::class, 'index']);
+Route::get('ads/{id}', [AdsController::class, 'show']);
+Route::post('ads', [AdsController::class, 'store']);
+Route::put('ads/{id}', [AdsController::class, 'update']);
+Route::delete('ads/{id}', [AdsController::class, 'destroy']);
+Route::patch('ads/{id}/toggle', [AdsController::class, 'toggleStatus']);
+Route::get('ads/list/actives', [AdsController::class, 'getActiveAds']);

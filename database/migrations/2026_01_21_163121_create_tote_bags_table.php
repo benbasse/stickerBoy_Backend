@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->integer('price' );
-            $table->string('image');
+            $table->json('images');
             $table->integer('stock')->default(0);
             $table->foreignUuid('category_tote_bag_id')->constrained('category_tote_bags')->onDelete('cascade');
             $table->softDeletes();

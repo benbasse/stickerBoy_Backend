@@ -17,9 +17,13 @@ class ToteBag extends Model
         'name',
         'description',
         'price',
-        'image',
+        'images',
         'stock',
         'category_tote_bag_id',
+    ];
+
+    protected $casts = [
+        'images' => 'array',
     ];
 
     public function categoryToteBag()
