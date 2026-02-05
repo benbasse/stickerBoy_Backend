@@ -13,6 +13,8 @@ use App\Http\Controllers\ToteBagController;
 use App\Models\Sticker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\BroadcastController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -101,3 +103,13 @@ Route::put('ads/{id}', [AdsController::class, 'update']);
 Route::delete('ads/{id}', [AdsController::class, 'destroy']);
 Route::patch('ads/{id}/toggle', [AdsController::class, 'toggleStatus']);
 Route::get('ads/list/actives', [AdsController::class, 'getActiveAds']);
+
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+});
+// Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
+// routes/api.php
+Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);

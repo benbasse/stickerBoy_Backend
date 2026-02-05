@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sticker;
 use App\Models\ToteBag;
+use App\Models\User;
+use App\Notifications\NewOrderNotification;
 use App\Services\Bictorys\BictorysPaymentService;
 use App\Traits\apiResponseTrait;
 use Illuminate\Http\Request;
@@ -151,6 +153,13 @@ class OrderController extends Controller
             ]);
 
             DB::commit();
+
+        // notifier tous les admins
+            $admins = User::where('role', 'admin')->get();
+
+            foreach ($admins as $admin) {
+                $admin->notify(new NewOrderNotification($order));
+            }
 
             return $this->succesResponse(
                 $order->load('orderItems'),
