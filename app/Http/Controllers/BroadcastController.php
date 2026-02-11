@@ -16,9 +16,14 @@ class BroadcastController extends Controller
 
         $user = JWTAuth::setToken($request->bearerToken())->authenticate();
 
-        if (!$user || $user->role !== 'admin') {
-            abort(403);
+        if (!$user) {
+            abort(403, 'User not authenticated');
         }
+
+        // Injecter l'utilisateur dans la request pour Broadcast::auth()
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
 
         return Broadcast::auth($request);
     }

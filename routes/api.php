@@ -18,6 +18,7 @@ use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Webhook\SenePayWebhookController;
+use Illuminate\Support\Facades\Broadcast;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -119,10 +120,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
-// Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
-// routes/api.php
-Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
-
 
 // routes/api.php
 Route::middleware('auth:api')->group(function () {});
@@ -145,3 +142,6 @@ Route::middleware(['auth:api', 'access:user,admin'])->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::patch('/orders/status/{order}', [OrderController::class, 'updateStatus']);
 });
+
+// Broadcasting auth route avec JWT
+Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
