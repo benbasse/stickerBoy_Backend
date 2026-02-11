@@ -10,6 +10,16 @@ use Symfony\Component\HttpFoundation\Request;
 
 class AuthController extends Controller
 {
+
+    /**
+     *listusers
+     */
+    public function index()
+    {
+        $users = User::all();
+        return response()->json($users, 200);
+    }
+
     /**
      * Get a JWT via given credentials.
      *
@@ -91,6 +101,7 @@ class AuthController extends Controller
             'phone' => 'required|string|max:20',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
+            'role' => 'required|in:admin,user'
         ]);
 
         $user = User::create([
@@ -99,9 +110,20 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $request->role,
         ]);
 
         // $token = auth()->login($user);
         return response()->json(['message' => 'User successfully registered'], 201);
+    }
+
+    public function delete($id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        $user->delete();
+        return response()->json(['message' => 'User successfully deleted'], 200);
     }
 }

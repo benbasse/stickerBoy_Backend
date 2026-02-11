@@ -34,4 +34,12 @@ return [
         'api_key' => env('BICTORYS_API_KEY'),
         'base_url' => env('BICTORYS_BASE_URL'),
     ],
+    'senepay' => [
+    'base_url'      => env('SENEPAY_BASE_URL'),
+    'public_key'    => env('SENEPAY_PUBLIC_KEY'),
+    'secret_key'    => env('SENEPAY_SECRET_KEY'),
+    'webhook_secret'=> env('SENEPAY_WEBHOOK_SECRET'),
+],
+
+
 ];

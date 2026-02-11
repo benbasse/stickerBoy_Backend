@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Collection;
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sticker;
@@ -25,7 +26,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $orders = Order::with('orderItems', 'customer')->get();
+        $orders = Order::with('orderItems', 'customer', 'invoice')->get();
         return $this->succesResponse($orders, 'done', 200);
     }
 
@@ -154,7 +155,18 @@ class OrderController extends Controller
 
             DB::commit();
 
-        // notifier tous les admins
+
+            // Create an invoice for the order
+            $invoice = Invoice::create([
+                'order_id' => $order->id,
+                'invoice_number' => 'INV-' . now()->format('Ymd') . '-' . $order->id,
+                'invoice_date' => now(),
+                'total_amount' => $order->total_price,
+                'status' => 'issued'
+            ]);
+
+
+            // notifier tous les admins
             $admins = User::where('role', 'admin')->get();
 
             foreach ($admins as $admin) {
@@ -162,7 +174,7 @@ class OrderController extends Controller
             }
 
             return $this->succesResponse(
-                $order->load('orderItems'),
+                $order->load('orderItems', 'invoice'),
                 'Order created successfully',
                 201
             );
@@ -182,7 +194,7 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $order = Order::with('orderItems', 'customer')->findOrFail($id);
+        $order = Order::with('orderItems', 'customer', 'invoice')->findOrFail($id);
         return $this->succesResponse($order, 'done', 200);
     }
 
@@ -197,58 +209,6 @@ class OrderController extends Controller
         return $this->succesResponse(null, 'Order deleted successfully', 200);
     }
 
-    /**
-     *
-     * Example request payload:
-        {
-        "customer": {
-            "firstname": "Moussa",
-            "lastname": "Basse",
-            "phone": "770000000"
-        },
-        "items": [
-            {
-            "type": "product",
-            "product_type": "sticker",
-            "product_id": "1",
-            "quantity": 2
-            },
-            {
-            "type": "collection",
-            "collection_id": 3
-            }
-        ]
-        }
-     */
-
-    /**
-     * Pay for the specified order by id order.
-     */
-    public function pay($id, BictorysPaymentService $bictorys)
-    {
-        $order = Order::findOrFail($id);
-
-        if ($order->payment_status === 'paid') {
-            return response()->json(['message' => 'Order already paid'], 400);
-        }
-
-        $payment = $bictorys->createCharge([
-            "amount" => $order->total_price,
-            "currency" => "XOF",
-            "paymentReference" => $order->reference,
-            "successRedirectUrl" => env('FRONTEND_SUCCESS_URL'),
-            "errorRedirectUrl" => env('FRONTEND_ERROR_URL'),
-        ]);
-        $order->update([
-            'payment_provider' => 'bictorys',
-            'payment_status' => 'unpaid',
-            'payment_link' => $payment['link'] ?? null,
-        ]);
-
-        return response()->json([
-            'payment_url' => $order->payment_link
-        ]);
-    }
 
     /**
      *Updatestatus order

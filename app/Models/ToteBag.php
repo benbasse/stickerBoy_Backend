@@ -42,4 +42,10 @@ class ToteBag extends Model
             id: 'product_id'
         );
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'product_id', 'id')
+            ->where('product_type', 'tote_bag');
+    }
 }

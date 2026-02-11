@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BroadcastController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Webhook\SenePayWebhookController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -26,12 +29,16 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware(['auth:api'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
+    Route::get('users', [AuthController::class, 'index']);
 });
+Route::post('refresh', [AuthController::class, 'refresh']);
 
 
 Route::middleware(['auth:api', 'access:admin'])->group(function () {
+
+    //destroy user
+    Route::delete('users/{id}', [AuthController::class, 'delete']);
     //category routes
     Route::post('categories', [CategoryController::class, 'store']);
     Route::put('categories/{id}', [CategoryController::class, 'update']);
@@ -71,6 +78,8 @@ Route::middleware(['auth:api', 'access:admin'])->group(function () {
     // Route::Post('collections', [CollectionController::class, 'store']);
     Route::put('collections/{collection}', [CollectionController::class, 'update']);
     Route::delete('collections/{collection}', [CollectionController::class, 'destroy']);
+
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll']);
 });
 
 Route::post('/orders', [OrderController::class, 'store']);
@@ -113,3 +122,26 @@ Route::middleware('auth:api')->group(function () {
 // Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
 // routes/api.php
 Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
+
+
+// routes/api.php
+Route::middleware('auth:api')->group(function () {});
+Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])
+    ->middleware('auth:api');
+
+//senepay
+Route::post('/orders/{id}/senepay', [PaymentController::class, 'payWithSenePay']);
+Route::post('/payments/senepay/webhook', [SenePayWebhookController::class, 'handle'])->name('senepay.webhook');
+
+
+//routepartageruserandadmin
+Route::middleware(['auth:api', 'access:user,admin'])->group(function () {
+    //Route pour les utilisateurs et les admins
+    Route::get('/profile', function (Request $request) {
+        return $request->user();
+    });
+    //orders routes
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::patch('/orders/status/{order}', [OrderController::class, 'updateStatus']);
+});

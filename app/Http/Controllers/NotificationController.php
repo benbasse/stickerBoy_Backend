@@ -29,4 +29,10 @@ class NotificationController extends Controller
 
         return response()->json(['status' => 'ok']);
     }
+
+    public function destroyAll()
+    {
+        auth()->user()->notifications()->delete();
+        return response()->json(['message' => 'All notifications deleted']);
+    }
 }

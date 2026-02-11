@@ -38,4 +38,14 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Collection::class, 'from_collection_id');
     }
+
+    public function sticker()
+    {
+        return $this->belongsTo(Sticker::class, 'product_id');
+    }
+
+    public function toteBag()
+    {
+        return $this->belongsTo(ToteBag::class, 'product_id');
+    }
 }

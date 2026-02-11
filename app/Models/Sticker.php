@@ -21,7 +21,7 @@ class Sticker extends Model
         'price',
         'description',
         'quantity',
-        'taille',//ajout de la colonne taille
+        'taille', //ajout de la colonne taille
     ];
 
     public function category()
@@ -44,5 +44,11 @@ class Sticker extends Model
             type: 'product_type',
             id: 'product_id'
         );
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'product_id', 'id')
+            ->where('product_type', 'sticker');
     }
 }
