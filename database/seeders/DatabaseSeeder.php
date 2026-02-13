@@ -17,13 +17,15 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::create([
-            'name' => 'Test User',
-            'lastname' => 'Userlastname',
-            'phone' => '0123456789',
-            'role' => 'admin',
-            'email' => 'test@example.com',
-            'password' => Hash::make('password')
-        ]);
+        User::updateOrCreate(
+            ['email' => 'stickerboy@gmail.com'],
+            [
+                'name' => 'Sticker',
+                'lastname' => 'Boy',
+                'phone' => '+221786536567',
+                'role' => 'admin',
+                'password' => Hash::make('StickerBoy123@'),
+            ]
+        );
     }
 }
