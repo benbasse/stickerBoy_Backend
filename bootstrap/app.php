@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AccessMiddleware;
+use App\Http\Middleware\CheckMaintenance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'access' => AccessMiddleware::class,
+            'maintenance' => CheckMaintenance::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -35,11 +35,20 @@ return [
         'base_url' => env('BICTORYS_BASE_URL'),
     ],
     'senepay' => [
-    'base_url'      => env('SENEPAY_BASE_URL'),
-    'public_key'    => env('SENEPAY_PUBLIC_KEY'),
-    'secret_key'    => env('SENEPAY_SECRET_KEY'),
-    'webhook_secret'=> env('SENEPAY_WEBHOOK_SECRET'),
-],
-
+        'base_url'      => env('SENEPAY_BASE_URL'),
+        'public_key'    => env('SENEPAY_PUBLIC_KEY'),
+        'secret_key'    => env('SENEPAY_SECRET_KEY'),
+        'webhook_secret' => env('SENEPAY_WEBHOOK_SECRET'),
+    ],
+    'naboopay' => [
+        'url' => env('NABOOPAY_URL', 'https://api.dev.naboopay.com/api/v2'),
+        'token' => env('NABOOPAY_TOKEN'),
+        'webhook_secret' => env('NABOOPAY_WEBHOOK_SECRET'),
+        'recipient_phone' => env('NABOOPAY_RECIPIENT_PHONE', '+221786536567'),
+        'recipient_first_name' => env('NABOOPAY_RECIPIENT_FIRST_NAME', 'StickerBoy'),
+        'recipient_last_name' => env('NABOOPAY_RECIPIENT_LAST_NAME', 'Store'),
+        'success_url' => env('NABOOPAY_SUCCESS_URL'),
+        'error_url' => env('NABOOPAY_ERROR_URL'),
+    ],
 
 ];

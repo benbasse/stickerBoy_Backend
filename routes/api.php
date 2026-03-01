@@ -17,7 +17,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\Webhook\SenePayWebhookController;
+use App\Http\Controllers\Webhook\NabooPayWebhookController;
+use App\Http\Controllers\Api\MaintenanceController;
 use Illuminate\Support\Facades\Broadcast;
 
 Route::get('/user', function (Request $request) {
@@ -107,12 +108,13 @@ Route::get('/orders/{order}', [OrderController::class, 'show']);
 
 // Ads routes
 Route::get('ads', [AdsController::class, 'index']);
+Route::get('ads/list/actives', [AdsController::class, 'getActiveAds']);
 Route::get('ads/{id}', [AdsController::class, 'show']);
 Route::post('ads', [AdsController::class, 'store']);
 Route::put('ads/{id}', [AdsController::class, 'update']);
+Route::post('ads/{id}', [AdsController::class, 'update']); // Alternative POST pour FormData
 Route::delete('ads/{id}', [AdsController::class, 'destroy']);
 Route::patch('ads/{id}/toggle', [AdsController::class, 'toggleStatus']);
-Route::get('ads/list/actives', [AdsController::class, 'getActiveAds']);
 
 
 Route::middleware('auth:api')->group(function () {
@@ -126,10 +128,19 @@ Route::middleware('auth:api')->group(function () {});
 Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])
     ->middleware('auth:api');
 
-//senepay
-Route::post('/orders/{id}/senepay', [PaymentController::class, 'payWithSenePay']);
-Route::post('/payments/senepay/webhook', [SenePayWebhookController::class, 'handle'])->name('senepay.webhook');
+//naboopay
+Route::post('/orders/{id}/naboopay', [PaymentController::class, 'payWithNabooPay']);
+Route::post('/payments/naboopay/webhook', [NabooPayWebhookController::class, 'handle'])->name('naboopay.webhook');
 
+//maintenance - route publique
+Route::get('/maintenance/status', [MaintenanceController::class, 'status']);
+
+//maintenance - routes admin protégées
+Route::middleware(['auth:api', 'access:admin'])->prefix('maintenance')->group(function () {
+    Route::post('/enable', [MaintenanceController::class, 'enable']);
+    Route::post('/disable', [MaintenanceController::class, 'disable']);
+    Route::put('/update', [MaintenanceController::class, 'update']);
+});
 
 //routepartageruserandadmin
 Route::middleware(['auth:api', 'access:user,admin'])->group(function () {

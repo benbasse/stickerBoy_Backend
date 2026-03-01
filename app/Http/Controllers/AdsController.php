@@ -37,15 +37,15 @@ class AdsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'cta_text' => 'required|string|max:100',
-            'cta_link' => 'required|string|max:255',
+            'title' => 'required|string|max:100',
+            'subtitle' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:500',
+            'cta_text' => 'required|string|max:30',
+            'cta_link' => 'required|string',
             'theme' => 'required|in:warm,cool,nature,dark',
             'target' => 'required|in:homepage,category,collection',
             'status' => 'sometimes|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'order' => 'nullable|integer|min:0'
         ]);
 
@@ -85,15 +85,15 @@ class AdsController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'title' => 'sometimes|string|max:255',
-            'subtitle' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'cta_text' => 'sometimes|string|max:100',
-            'cta_link' => 'sometimes|string|max:255',
+            'title' => 'sometimes|string|max:100',
+            'subtitle' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:500',
+            'cta_text' => 'sometimes|string|max:30',
+            'cta_link' => 'sometimes|string',
             'theme' => 'sometimes|in:warm,cool,nature,dark',
             'target' => 'sometimes|in:homepage,category,collection',
             'status' => 'sometimes|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'order' => 'nullable|integer|min:0'
         ]);
 
@@ -115,6 +115,10 @@ class AdsController extends Controller
         ]));
 
         if ($request->hasFile('image')) {
+            // Supprimer l'ancienne image si elle existe
+            if ($ad->image) {
+                \Storage::disk('public')->delete($ad->image);
+            }
             $ad->image = $this->storeImage($request->file('image'));
             $ad->save();
         }

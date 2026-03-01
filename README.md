@@ -64,3 +64,6 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+100000 pour les televiseurs et frigo, cuisiniers, hot de cuisine, plat encastrable, four 
+ congelateurs,  
