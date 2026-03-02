@@ -8,10 +8,11 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use Notifiable, HasUuids, SoftDeletes;
+    use Notifiable, HasUuids, SoftDeletes, HasPushSubscriptions;
 
     protected $keyType = 'string'; // UUID est une chaîne
     public $incrementing = false; // Désactiver l'auto-incrémentation

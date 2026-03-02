@@ -19,6 +19,7 @@ class OrderItem extends Model
         'product_type',
         'unit_price',
         'quantity',
+        'size',
         'from_collection_id',
         'is_bundle_item',
         'subtotal'

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Webhook;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\NabooPayService;
+use App\Services\PushNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
@@ -71,7 +72,7 @@ class NabooPayWebhookController extends Controller
     {
         $order->update([
             'payment_status' => 'paid',
-            'status' => 'confirmed',
+            'status' => 'processing',
             'paid_at' => now(),
         ]);
 
@@ -79,6 +80,10 @@ class NabooPayWebhookController extends Controller
             'order_id' => $order->id,
             'reference' => $order->payment_reference,
         ]);
+
+        // Envoyer push notification aux admins
+        $pushService = app(PushNotificationService::class);
+        $pushService->notifyPaymentReceived($order->id, (int) $order->total_price);
 
         // Transférer automatiquement vers le compte principal
         $this->transferToMainAccount($order, $payload);

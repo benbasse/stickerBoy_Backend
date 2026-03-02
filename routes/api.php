@@ -18,6 +18,7 @@ use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Webhook\NabooPayWebhookController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\Api\MaintenanceController;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -130,7 +131,17 @@ Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])
 
 //naboopay
 Route::post('/orders/{id}/naboopay', [PaymentController::class, 'payWithNabooPay']);
+Route::get('/orders/{id}/payment-status', [PaymentController::class, 'checkPaymentStatus']);
+Route::post('/orders/{id}/sync-payment', [PaymentController::class, 'syncPaymentStatus']);
 Route::post('/payments/naboopay/webhook', [NabooPayWebhookController::class, 'handle'])->name('naboopay.webhook');
+
+//naboopay transactions (admin)
+Route::prefix('naboopay')->middleware(['auth:api', 'access:admin'])->group(function () {
+    Route::get('/transactions', [\App\Http\Controllers\NabooPayTransactionController::class, 'index']);
+    Route::post('/sync-all', [\App\Http\Controllers\NabooPayTransactionController::class, 'syncAll']);
+    Route::post('/sync-pending', [\App\Http\Controllers\NabooPayTransactionController::class, 'syncPending']);
+    Route::get('/stats', [\App\Http\Controllers\NabooPayTransactionController::class, 'stats']);
+});
 
 //maintenance - route publique
 Route::get('/maintenance/status', [MaintenanceController::class, 'status']);
@@ -156,3 +167,10 @@ Route::middleware(['auth:api', 'access:user,admin'])->group(function () {
 
 // Broadcasting auth route avec JWT
 Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
+
+// Web Push notifications
+Route::get('/push/vapid-public-key', [PushSubscriptionController::class, 'vapidPublicKey']);
+Route::middleware('auth:api')->group(function () {
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store']);
+    Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'destroy']);
+});

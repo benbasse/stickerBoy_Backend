@@ -12,6 +12,7 @@ use App\Models\ToteBag;
 use App\Models\User;
 use App\Notifications\NewOrderNotification;
 use App\Services\Bictorys\BictorysPaymentService;
+use App\Services\PushNotificationService;
 use App\Traits\apiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,8 +41,8 @@ class OrderController extends Controller
      *jsonattended
     {
         "customer": {
-            "firstname": "Moussa",
-            "lastname": "Basse",
+            "firstname": "John",
+            "lastname": "Doe",
             "phone": "770000000"
         },
         "items": [
@@ -66,6 +67,7 @@ class OrderController extends Controller
             'customer.firstname' => 'required|string',
             'customer.lastname'  => 'required|string',
             'customer.phone'     => 'required|string',
+            'customer.address'   => 'nullable|string',
 
             'items' => 'required|array|min:1',
             'items.*.type' => 'required|in:product,collection',
@@ -74,6 +76,7 @@ class OrderController extends Controller
             'items.*.product_id'   => 'required_if:items.*.type,product',
             'items.*.product_type' => 'required_if:items.*.type,product|in:sticker,tote_bag',
             'items.*.quantity'     => 'required_if:items.*.type,product|integer|min:1',
+            'items.*.size'         => 'nullable|in:small,medium,large',
 
             // collection rules
             'items.*.collection_id' => 'required_if:items.*.type,collection'
@@ -85,6 +88,7 @@ class OrderController extends Controller
                 'firstname' => $request->customer['firstname'],
                 'lastname'  => $request->customer['lastname'],
                 'phone'     => $request->customer['phone'],
+                'address'   => $request->customer['address'] ?? null,
             ]);
 
             // 2. Create order
@@ -113,6 +117,7 @@ class OrderController extends Controller
                         'product_type' => $item['product_type'],
                         'unit_price'  => $product->price,
                         'quantity'    => $item['quantity'],
+                        'size'        => $item['size'] ?? null,
                         'subtotal'    => $subtotal,
                         'is_bundle_item' => false
                     ]);
@@ -166,12 +171,20 @@ class OrderController extends Controller
             ]);
 
 
-            // notifier tous les admins
+            // notifier tous les admins (notification DB)
             $admins = User::where('role', 'admin')->get();
 
             foreach ($admins as $admin) {
                 $admin->notify(new NewOrderNotification($order));
             }
+
+            // Envoyer push notification aux admins
+            $pushService = app(PushNotificationService::class);
+            $pushService->notifyNewOrder(
+                $order->id,
+                $customer->firstname . ' ' . $customer->lastname,
+                $total
+            );
 
             return $this->succesResponse(
                 $order->load('orderItems', 'invoice'),

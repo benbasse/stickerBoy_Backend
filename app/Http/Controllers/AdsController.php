@@ -117,7 +117,7 @@ class AdsController extends Controller
         if ($request->hasFile('image')) {
             // Supprimer l'ancienne image si elle existe
             if ($ad->image) {
-                \Storage::disk('public')->delete($ad->image);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($ad->image);
             }
             $ad->image = $this->storeImage($request->file('image'));
             $ad->save();

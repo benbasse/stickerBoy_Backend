@@ -153,7 +153,7 @@
             <tr>
                 <td style="width:60%;">
                     <div class="company-name">STICKER BOY</div>
-                    <div class="company-tagline">Collectible Art, Portable Vibes</div>
+                    <div class="company-tagline">Pas une Marque</div>
                 </td>
                 <td style="width:40%;">
                     <div class="invoice-title">FACTURE</div>
@@ -201,6 +201,7 @@
             <tr>
                 <th>Image</th>
                 <th>Produit</th>
+                <th class="text-center">Taille</th>
                 <th class="text-center">Qté</th>
                 <th class="text-right">Prix</th>
                 <th class="text-right">Total</th>
@@ -229,6 +230,25 @@
                         @endif
                     </td>
                     <td>{{ strtoupper($item->product_type) }}</td>
+                    <td class="text-center">
+                        @if($item->size)
+                            @switch($item->size)
+                                @case('small')
+                                    Petit
+                                    @break
+                                @case('medium')
+                                    Moyen
+                                    @break
+                                @case('large')
+                                    Grand
+                                    @break
+                                @default
+                                    {{ $item->size }}
+                            @endswitch
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td class="text-center">{{ $item->quantity }}</td>
                     <td class="text-right">
                         {{ number_format($item->unit_price, 0, ',', ' ') }} FCFA
