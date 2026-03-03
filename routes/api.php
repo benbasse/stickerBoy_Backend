@@ -133,6 +133,12 @@ Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])
 Route::post('/orders/{id}/naboopay', [PaymentController::class, 'payWithNabooPay']);
 Route::get('/orders/{id}/payment-status', [PaymentController::class, 'checkPaymentStatus']);
 Route::post('/orders/{id}/sync-payment', [PaymentController::class, 'syncPaymentStatus']);
+
+// Payout manuel (admin only)
+Route::middleware(['auth:api', 'access:admin'])->group(function () {
+    Route::post('/orders/{id}/payout', [PaymentController::class, 'triggerPayout']);
+    Route::post('/orders/payout-all', [PaymentController::class, 'triggerAllPendingPayouts']);
+});
 Route::post('/payments/naboopay/webhook', [NabooPayWebhookController::class, 'handle'])->name('naboopay.webhook');
 
 //naboopay transactions (admin)
