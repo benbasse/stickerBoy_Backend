@@ -213,41 +213,57 @@
                     <td>
                         @php
                             $img = null;
-                            if ($item->product_type === 'sticker' && isset($item->sticker)) {
-                                $img = $item->sticker->image ?? null;
-                            } elseif ($item->product_type === 'totebag' && isset($item->totebag)) {
-                                $img = $item->totebag->image ?? null;
-                            } elseif ($item->product_type === 'collection' && isset($item->collection)) {
-                                $img = $item->collection->image ?? null;
-                            } elseif (isset($item->product)) {
-                                $img = $item->product->image ?? null;
+                            $productName = 'Produit';
+                            $imgBase64 = null;
+
+                            if ($item->product_type === 'sticker') {
+                                $sticker = $item->sticker ?? \App\Models\Sticker::find($item->product_id);
+                                if ($sticker) {
+                                    $img = $sticker->image ?? null;
+                                    $productName = $sticker->name ?? 'Sticker';
+                                }
+                            } elseif ($item->product_type === 'tote_bag') {
+                                $toteBag = $item->toteBag ?? \App\Models\ToteBag::find($item->product_id);
+                                if ($toteBag) {
+                                    $img = $toteBag->image ?? null;
+                                    $productName = $toteBag->name ?? 'Tote Bag';
+                                }
+                            }
+
+                            // Construire le chemin complet et encoder en base64
+                            if ($img) {
+                                $imgPath = storage_path('app/public/' . $img);
+                                if (file_exists($imgPath)) {
+                                    $type = pathinfo($imgPath, PATHINFO_EXTENSION);
+                                    $data = file_get_contents($imgPath);
+                                    $imgBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                                }
                             }
                         @endphp
-                        @if($img)
-                            <img src="{{ public_path('storage/' . $img) }}" alt="{{ $item->product_type }}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid #e2e8f0;" />
+                        @if($imgBase64)
+                            <img src="{{ $imgBase64 }}" alt="{{ $productName }}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid #e2e8f0;" />
                         @else
                             <div style="width:40px;height:40px;border-radius:6px;background:#e2e8f0;text-align:center;line-height:40px;color:#aaa;font-size:10px;">N/A</div>
                         @endif
                     </td>
-                    <td>{{ strtoupper($item->product_type) }}</td>
+                    <td>{{ $productName }}</td>
                     <td class="text-center">
-                        @if($item->size)
-                            @switch($item->size)
-                                @case('small')
-                                    Petit
-                                    @break
-                                @case('medium')
-                                    Moyen
-                                    @break
-                                @case('large')
-                                    Grand
-                                    @break
-                                @default
-                                    {{ $item->size }}
-                            @endswitch
-                        @else
-                            -
-                        @endif
+                        @php
+                            $size = $item->size ?? 'medium'; // Par défaut: medium
+                        @endphp
+                        @switch($size)
+                            @case('small')
+                                Petit
+                                @break
+                            @case('medium')
+                                Moyen
+                                @break
+                            @case('large')
+                                Grand
+                                @break
+                            @default
+                                Moyen
+                        @endswitch
                     </td>
                     <td class="text-center">{{ $item->quantity }}</td>
                     <td class="text-right">

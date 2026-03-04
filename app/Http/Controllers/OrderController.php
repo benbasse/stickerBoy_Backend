@@ -28,7 +28,15 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::with('orderItems', 'customer', 'invoice')->get();
-        return $this->succesResponse($orders, 'done', 200);
+
+        // Ajouter l'URL de la facture pour chaque commande
+        $ordersData = $orders->map(function ($order) {
+            $orderArray = $order->toArray();
+            $orderArray['invoice_url'] = url("/api/orders/{$order->id}/invoice");
+            return $orderArray;
+        });
+
+        return $this->succesResponse($ordersData, 'done', 200);
     }
 
     /**
@@ -186,8 +194,12 @@ class OrderController extends Controller
                 $total
             );
 
+            // Préparer la réponse avec le lien de la facture
+            $orderData = $order->load('orderItems', 'invoice', 'customer')->toArray();
+            $orderData['invoice_url'] = url("/api/orders/{$order->id}/invoice");
+
             return $this->succesResponse(
-                $order->load('orderItems', 'invoice'),
+                $orderData,
                 'Order created successfully',
                 201
             );
@@ -208,7 +220,10 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = Order::with('orderItems', 'customer', 'invoice')->findOrFail($id);
-        return $this->succesResponse($order, 'done', 200);
+        $orderData = $order->toArray();
+        $orderData['invoice_url'] = url("/api/orders/{$order->id}/invoice");
+
+        return $this->succesResponse($orderData, 'done', 200);
     }
 
     /**
