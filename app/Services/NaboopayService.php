@@ -40,7 +40,7 @@ class NabooPayService
         array $paymentMethods = [self::PAYMENT_ORANGE_MONEY, self::PAYMENT_WAVE],
         ?string $successUrl = null,
         ?string $errorUrl = null,
-        bool $feesCustomerSide = false,
+        bool $feesCustomerSide = true,
         bool $isEscrow = false,
         bool $isMerchant = false
     ) {

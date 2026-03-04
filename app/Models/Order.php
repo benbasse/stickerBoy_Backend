@@ -18,12 +18,28 @@ class Order extends Model
         'total_price',
         'customer_id',
         'reference',
+        'order_number',
         'payment_status',
         'payment_provider',
         'payment_reference',
         'payment_link',
         'paid_at'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            // Générer un numéro de commande simple : SB-0001, SB-0002, etc.
+            $lastOrder = static::withTrashed()->orderBy('created_at', 'desc')->first();
+            $lastNumber = 0;
+            if ($lastOrder && $lastOrder->order_number) {
+                $lastNumber = intval(substr($lastOrder->order_number, 3));
+            }
+            $order->order_number = 'SB-' . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+        });
+    }
 
     public function stickers()
     {

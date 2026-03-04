@@ -124,10 +124,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
 
-// routes/api.php
-Route::middleware('auth:api')->group(function () {});
-Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])
-    ->middleware('auth:api');
+// Facture publique (accessible via l'URL unique avec l'ID de commande)
+Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download']);
 
 //naboopay
 Route::post('/orders/{id}/naboopay', [PaymentController::class, 'payWithNabooPay']);
