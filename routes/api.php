@@ -40,7 +40,8 @@ Route::post('refresh', [AuthController::class, 'refresh']);
 
 Route::middleware(['auth:api', 'access:admin'])->group(function () {
 
-    //destroy user
+    //admin user management
+    Route::post('admin/users', [AuthController::class, 'createUser']);
     Route::delete('users/{id}', [AuthController::class, 'delete']);
     //category routes
     Route::post('categories', [CategoryController::class, 'store']);

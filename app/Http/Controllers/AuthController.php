@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -125,5 +125,42 @@ class AuthController extends Controller
         }
         $user->delete();
         return response()->json(['message' => 'User successfully deleted'], 200);
+    }
+
+    /**
+     * Create a new user (Admin only).
+     * Excludes soft-deleted users from email uniqueness check.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function createUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|min:6',
+            'role' => 'required|in:admin,user'
+        ]);
+
+        // Check if email already exists (excluding soft-deleted users)
+        $existingUser = User::where('email', $request->email)->first();
+        if ($existingUser) {
+            return response()->json(['message' => 'Cet email est déjà utilisé'], 422);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'lastname' => $request->lastname,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+        ]);
+
+        return response()->json([
+            'message' => 'Utilisateur créé avec succès',
+            'user' => $user
+        ], 201);
     }
 }
