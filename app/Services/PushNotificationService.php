@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Order;
 use App\Models\User;
+use App\Notifications\OrderStatusChangedNotification;
 use App\Notifications\PushNotification;
 use Illuminate\Support\Facades\Log;
 
@@ -102,6 +104,39 @@ class PushNotificationService
                 'type' => 'payment_received',
                 'order_id' => $orderId,
                 'url' => '/admin/orders/' . $orderId,
+            ]
+        );
+    }
+
+    /**
+     * Notification pour changement de statut de commande
+     */
+    public function notifyOrderStatusChanged(Order $order, string $oldStatus, string $newStatus, string $statusType = 'order'): int
+    {
+        $labels = OrderStatusChangedNotification::STATUS_LABELS;
+        $newLabel = $labels[$newStatus] ?? $newStatus;
+        $orderNumber = $order->order_number;
+
+        if ($statusType === 'payment') {
+            $title = 'Statut de paiement modifié';
+            $body = "Commande {$orderNumber} : paiement \"{$newLabel}\"";
+        } else {
+            $title = 'Statut de commande modifié';
+            $body = "Commande {$orderNumber} : \"{$newLabel}\"";
+        }
+
+        // Send push notification to all users (admins and regular users)
+        return $this->broadcast(
+            $title,
+            $body,
+            [
+                'type' => 'order_status_changed',
+                'order_id' => $order->id,
+                'order_number' => $orderNumber,
+                'status_type' => $statusType,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'url' => '/orders/' . $order->id,
             ]
         );
     }

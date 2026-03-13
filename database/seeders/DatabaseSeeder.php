@@ -17,14 +17,24 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // User::updateOrCreate(
+        //     ['email' => 'stickerboy@gmail.com'],
+        //     [
+        //         'name' => 'Sticker',
+        //         'lastname' => 'Boy',
+        //         'phone' => '+221786536567',
+        //         'role' => 'admin',
+        //         'password' => Hash::make('StickerBoy123@'),
+        //     ]
+        // );
         User::updateOrCreate(
-            ['email' => 'stickerboy@gmail.com'],
+            ['email' => 'benbasse@gmail.com'],
             [
-                'name' => 'Sticker',
-                'lastname' => 'Boy',
-                'phone' => '+221786536567',
+                'name' => 'Ben',
+                'lastname' => 'Basse',
+                'phone' => '+221772889670',
                 'role' => 'admin',
-                'password' => Hash::make('StickerBoy123@'),
+                'password' => Hash::make('BenBasse123@'),
             ]
         );
     }

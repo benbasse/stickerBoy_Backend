@@ -176,6 +176,11 @@
                     <div class="info-row">
                         Téléphone : {{ $invoice->order->customer->phone }}
                     </div>
+                    @if($invoice->order->customer->address)
+                    <div class="info-row">
+                        Adresse de livraison : {{ $invoice->order->customer->address }}
+                    </div>
+                    @endif
                 </div>
             </td>
             <td style="width:50%;padding-left:10px;">
