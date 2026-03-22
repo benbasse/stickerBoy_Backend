@@ -13,6 +13,8 @@ class OrderItem extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $appends = ['product_name', 'product_image'];
+
     protected $fillable = [
         'order_id',
         'product_id',
@@ -48,5 +50,27 @@ class OrderItem extends Model
     public function toteBag()
     {
         return $this->belongsTo(ToteBag::class, 'product_id');
+    }
+
+    public function getProductNameAttribute()
+    {
+        if ($this->product_type === 'sticker' && $this->sticker) {
+            return $this->sticker->name;
+        }
+        if ($this->product_type === 'tote_bag' && $this->toteBag) {
+            return $this->toteBag->name;
+        }
+        return null;
+    }
+
+    public function getProductImageAttribute()
+    {
+        if ($this->product_type === 'sticker' && $this->sticker) {
+            return $this->sticker->image;
+        }
+        if ($this->product_type === 'tote_bag' && $this->toteBag) {
+            return $this->toteBag->image;
+        }
+        return null;
     }
 }

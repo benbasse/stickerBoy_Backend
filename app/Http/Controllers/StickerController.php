@@ -15,7 +15,30 @@ class StickerController extends Controller
      */
     public function index()
     {
-        $stickers = Sticker::with(['category', 'subcategory'])->get();
+        $query = Sticker::with(['category', 'subcategory']);
+
+        // Filtre stock faible : ?stock_lte=10 ou ?stockMax=10
+        $stockMax = request('stock_lte', request('stockMax'));
+        if ($stockMax !== null && is_numeric($stockMax)) {
+            $query->where('quantity', '<=', (int)$stockMax);
+        }
+
+        // Filtre catégorie : ?category_id=...
+        if ($categoryId = request('category_id')) {
+            $query->where('category_id', $categoryId);
+        }
+
+        // Filtre sous-catégorie : ?sub_category_id=...
+        if ($subCategoryId = request('sub_category_id')) {
+            $query->where('sub_category_id', $subCategoryId);
+        }
+
+        // Recherche par nom : ?search=...
+        if ($search = request('search')) {
+            $query->where('name', 'like', "%$search%");
+        }
+
+        $stickers = $query->get();
         return $this->succesResponse($stickers, 'Stickers retrieved successfully');
     }
 

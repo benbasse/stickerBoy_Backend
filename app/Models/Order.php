@@ -14,7 +14,7 @@ class Order extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'status', //(pending, confirmed, cancelled)
+        'status', //(pending, processing, shipping, delivered, cancelled)
         'total_price',
         'customer_id',
         'reference',

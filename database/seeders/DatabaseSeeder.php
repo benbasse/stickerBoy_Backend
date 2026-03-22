@@ -28,11 +28,11 @@ class DatabaseSeeder extends Seeder
         //     ]
         // );
         User::updateOrCreate(
-            ['email' => 'benbasse@gmail.com'],
+            ['email' => 'ben21@gmail.com'],
             [
                 'name' => 'Ben',
                 'lastname' => 'Basse',
-                'phone' => '+221772889670',
+                'phone' => '+221772819670',
                 'role' => 'admin',
                 'password' => Hash::make('BenBasse123@'),
             ]

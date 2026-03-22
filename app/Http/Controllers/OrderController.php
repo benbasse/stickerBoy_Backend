@@ -27,7 +27,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $orders = Order::with('orderItems', 'customer', 'invoice')->get();
+        $orders = Order::with(['orderItems.sticker', 'orderItems.toteBag', 'customer', 'invoice'])->get();
 
         // Ajouter l'URL de la facture pour chaque commande
         $ordersData = $orders->map(function ($order) {
@@ -119,6 +119,10 @@ class OrderController extends Controller
                         : ToteBag::findOrFail($item['product_id']);
                     $subtotal = $product->price * $item['quantity'];
                     $total += $subtotal;
+                    // Décrémenter la quantité du sticker si c'est un sticker
+                    if ($item['product_type'] === 'sticker') {
+                        $product->decrement('quantity', $item['quantity']);
+                    }
                     OrderItem::create([
                         'order_id'    => $order->id,
                         'product_id'  => $product->id,
@@ -141,6 +145,10 @@ class OrderController extends Controller
                         // Récupérer le vrai produit
                         if ($product->product_type === 'sticker') {
                             $realProduct = $product->sticker;
+                            // Décrémenter la quantité du sticker dans le bundle
+                            if ($realProduct) {
+                                $realProduct->decrement('quantity', $product->quantity);
+                            }
                         } elseif ($product->product_type === 'tote_bag') {
                             $realProduct = $product->toteBag;
                         } else {
@@ -194,9 +202,28 @@ class OrderController extends Controller
                 $total
             );
 
-            // Préparer la réponse avec le lien de la facture
-            $orderData = $order->load('orderItems', 'invoice', 'customer')->toArray();
+            // Préparer la réponse avec le lien de la facture et enrichir les items
+            $order->load(['orderItems.collection', 'orderItems.sticker', 'orderItems.toteBag', 'invoice', 'customer']);
+            $orderData = $order->toArray();
             $orderData['invoice_url'] = url("/api/orders/{$order->id}/invoice");
+
+            // Enrichir chaque item avec les champs attendus
+            $orderData['order_items'] = collect($order->orderItems)->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product_name,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'subtotal' => $item->subtotal,
+                    'product_type' => $item->product_type,
+                    'image' => $item->product_image,
+                    'collection' => $item->collection ? [
+                        'id' => $item->collection->id,
+                        'name' => $item->collection->name
+                    ] : null,
+                ];
+            });
 
             return $this->succesResponse(
                 $orderData,
@@ -219,10 +246,25 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $order = Order::with('orderItems', 'customer', 'invoice')->findOrFail($id);
+        $order = Order::with(['orderItems.collection', 'orderItems.sticker', 'orderItems.toteBag', 'customer', 'invoice'])->findOrFail($id);
         $orderData = $order->toArray();
         $orderData['invoice_url'] = url("/api/orders/{$order->id}/invoice");
-
+        $orderData['order_items'] = collect($order->orderItems)->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'product_name' => $item->product_name,
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'subtotal' => $item->subtotal,
+                'product_type' => $item->product_type,
+                'image' => $item->product_image,
+                'collection' => $item->collection ? [
+                    'id' => $item->collection->id,
+                    'name' => $item->collection->name
+                ] : null,
+            ];
+        });
         return $this->succesResponse($orderData, 'done', 200);
     }
 
@@ -245,7 +287,7 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail($id);
         $request->validate([
-            'status' => 'required|in:pending,processing,paid,refunded,failed,completed,cancelled'
+            'status' => 'required|in:pending,processing,shipping,delivered,cancelled'
         ]);
 
         $order->update([
