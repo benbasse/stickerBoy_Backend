@@ -1,0 +1,12 @@
+  <IfModule mod_rewrite.c>
+      Options +FollowSymLinks
+      RewriteEngine On
+
+      # Servir les fichiers storage directement depuis le dossier Laravel
+      RewriteCond %{REQUEST_URI} ^/storage/(.*)$
+      RewriteCond %{DOCUMENT_ROOT}/laravel/storage/app/public/%1 -f
+      RewriteRule ^storage/(.*)$ laravel/storage/app/public/$1 [L]
+
+      # Toutes les autres requêtes vers Laravel public
+      RewriteRule ^(.*)$ laravel/public/$1 [L]
+  </IfModule>
